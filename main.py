@@ -5,6 +5,7 @@ import re
 import icalendar as ical
 import datetime as dt
 import sys
+from pytz import timezone
 
 WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
 
@@ -24,7 +25,7 @@ print(file=sys.stderr)
 for tr in body.find_all('tr'):
     tds = [ [s for s in td.strings if not s.isspace()] for td in tr.find_all('td') ]
 
-    time = dt.time(hour=int(tds[0][0][0:2]))
+    time = dt.time(hour=int(tds[0][0][0:2]), tzinfo=timezone('Europe/London'))
 
     for i in range(5):
         td = tds[i + 1]
