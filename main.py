@@ -28,29 +28,32 @@ def get_timetable(cal, period):
         for i in range(5):
             td = tds[i + 1]
             if td:
-                m = re.fullmatch(r'(\w{3}) \((\d+)-(\d+)\) / (.+)? / ?(.+)?', td[1])
+                for j in range(0, len(td), 2):
+                    r = td[j:j+2]
 
-                for w in range(int(m.group(2)), int(m.group(3)) + 1):
-                    t = dt.datetime.combine(TERMSTART + dt.timedelta(weeks = (w - 1), days = i), time)
+                    m = re.fullmatch(r'(\w{3}) \((\d+)-(\d+)\) / (.+)? / ?(.+)?', r[1])
 
-                    print(td[0], file=sys.stderr)
-                    print(t, file=sys.stderr)
+                    for w in range(int(m.group(2)), int(m.group(3)) + 1):
+                        t = dt.datetime.combine(TERMSTART + dt.timedelta(weeks = (w - 1), days = i), time)
 
-                    if m.group(1) != 'Wks':
-                        print(m.group(1), file=sys.stderr)
-                    if m.group(4):
-                        print('%s' % m.group(4), file=sys.stderr)
-                    if m.group(5):
-                        print('Room %s' % m.group(5), file=sys.stderr)
-                    print(file=sys.stderr)
+                        print(r[0], file=sys.stderr)
+                        print(t, file=sys.stderr)
 
-                    event = ical.Event()
-                    event.add('summary', td[0])
-                    event.add('dtstart', t)
-                    event.add('dtend', t + dt.timedelta(hours = 1))
-                    if m.group(5):
-                        event['location'] = ical.vText('Room %s' % m.group(5))
-                    cal.add_component(event)
+                        if m.group(1) != 'Wks':
+                            print(m.group(1), file=sys.stderr)
+                        if m.group(4):
+                            print('%s' % m.group(4), file=sys.stderr)
+                        if m.group(5):
+                            print('Room %s' % m.group(5), file=sys.stderr)
+                        print(file=sys.stderr)
+
+                        event = ical.Event()
+                        event.add('summary', r[0])
+                        event.add('dtstart', t)
+                        event.add('dtend', t + dt.timedelta(hours = 1))
+                        if m.group(5):
+                            event['location'] = ical.vText('Room %s' % m.group(5))
+                        cal.add_component(event)
 
 if len(sys.argv) != 2:
     print("Usage : %s CLASS" % sys.argv[0], file=sys.stderr)
