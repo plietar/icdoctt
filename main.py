@@ -7,13 +7,17 @@ import datetime as dt
 import sys
 from pytz import timezone
 
-WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+if len(sys.argv) != 2:
+    print("Usage : %s CLASS" % sys.argv[0], file=sys.stderr)
+    sys.exit(1)
+
+clazz = sys.argv[1]
 
 termstart = dt.date(2014, 10, 6)
 
 cal = ical.Calendar()
 
-soup = BeautifulSoup.BeautifulSoup(requests.get('http://www.doc.ic.ac.uk/internal/timetables/2014-15/autumn/class/9_2_10.htm').text)
+soup = BeautifulSoup.BeautifulSoup(requests.get('http://www.doc.ic.ac.uk/internal/timetables/2014-15/autumn/class/%s_1_1.htm' % clazz).text)
 table = soup.find('table')
 body = table.tbody
 
