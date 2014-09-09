@@ -8,6 +8,18 @@ import sys
 from pytz import timezone
 
 TERMSTART = dt.date(2014, 10, 6)
+CLAZZMAP = {
+        'c1': 1, 'c2':  2, 'c3':  3, 'c4':  4,
+        'i1': 5, 'i2':  6, 'i3':  7, 'i4':  8,
+        'j1': 9, 'j2': 10, 'j3': 11, 'j4': 12,
+        'e3': 18, 'e4': 15,
+        'hipeds': 30,
+        'mres5': 28,
+        'a5': 14,
+        's5': 29,
+        'i5': 17,
+        'v5': 13
+}
 
 def get_timetable(cal, clazz, period):
     soup = BeautifulSoup.BeautifulSoup(requests.get('http://www.doc.ic.ac.uk/internal/timetables/2014-15/autumn/class/%s_%s.htm' % (clazz, period)).text)
@@ -54,14 +66,19 @@ def get_timetable(cal, clazz, period):
                             event['location'] = ical.vText('Room %s' % m.group(5))
                         cal.add_component(event)
 
-def main(clazz):
+def get_data(clazz):
+    clazz = CLAZZMAP[clazz]
     cal = ical.Calendar()
 
     get_timetable(cal, clazz, '1_1')
     get_timetable(cal, clazz, '2_10')
     get_timetable(cal, clazz, '11_11')
 
-    sys.stdout.buffer.write(cal.to_ical())
+    return cal.to_ical()
+
+
+def main(clazz):
+    sys.stdout.buffer.write(get_data(clazz))
 
 def server(listen):
     from flask import Flask
@@ -69,13 +86,7 @@ def server(listen):
 
     @app.route("/<clazz>.ics")
     def run(clazz):
-        cal = ical.Calendar()
-
-        get_timetable(cal, clazz, '1_1')
-        get_timetable(cal, clazz, '2_10')
-        get_timetable(cal, clazz, '11_11')
-
-        return cal.to_ical()
+        return get_data(clazz)
 
     if listen:
         host, port = urllib.parse.splitport(listen)
@@ -88,8 +99,8 @@ def usage():
     print("        %s --server LISTEN" % sys.argv[0], file=sys.stderr)
     sys.exit(1)
 
-if len(sys.argv) == 3 and sys.argv[1] == '--server':
-    server(sys.argv[2])
+if (len(sys.argv) == 2 or len(sys.argv) == 3) and sys.argv[1] == '--server':
+    server(sys.argv[2] if len(sys.argv) == 3 else None)
 elif len(sys.argv) == 2 and sys.argv[1] != '--server':
     main(sys.argv[1])
 else:
