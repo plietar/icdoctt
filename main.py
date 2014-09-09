@@ -82,7 +82,7 @@ def server(listen):
 
 def usage():
     print("Usage : %s CLASS" % sys.argv[0], file=sys.stderr)
-    print("        %s --server LISTEN" % sys.argv[0], file=sys.stderr)
+    print("        %s --server [LISTEN]" % sys.argv[0], file=sys.stderr)
     sys.exit(1)
 
 if (len(sys.argv) == 2 or len(sys.argv) == 3) and sys.argv[1] == '--server':
