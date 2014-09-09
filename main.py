@@ -8,7 +8,7 @@ import sys
 from pytz import timezone
 
 TERMSTART = dt.date(2014, 10, 6)
-CLAZZMAP = {
+COURSEMAP = {
         'c1': 1, 'c2':  2, 'c3':  3, 'c4':  4,
         'i1': 5, 'i2':  6, 'i3':  7, 'i4':  8,
         'j1': 9, 'j2': 10, 'j3': 11, 'j4': 12,
@@ -21,8 +21,8 @@ CLAZZMAP = {
         'v5': 13
 }
 
-def get_timetable(cal, clazz, period):
-    soup = BeautifulSoup.BeautifulSoup(requests.get('http://www.doc.ic.ac.uk/internal/timetables/2014-15/autumn/class/%s_%s.htm' % (clazz, period)).text)
+def get_timetable(cal, course, period):
+    soup = BeautifulSoup.BeautifulSoup(requests.get('http://www.doc.ic.ac.uk/internal/timetables/2014-15/autumn/class/%s_%s.htm' % (course, period)).text)
     table = soup.find('table')
     body = table.tbody
 
@@ -52,27 +52,27 @@ def get_timetable(cal, clazz, period):
                             event['location'] = ical.vText('Room %s' % m.group(6))
                         cal.add_component(event)
 
-def get_data(clazz):
-    clazz = CLAZZMAP[clazz]
+def get_data(course):
+    course = COURSEMAP[course]
     cal = ical.Calendar()
 
-    get_timetable(cal, clazz, '1_1')
-    get_timetable(cal, clazz, '2_10')
-    get_timetable(cal, clazz, '11_11')
+    get_timetable(cal, course, '1_1')
+    get_timetable(cal, course, '2_10')
+    get_timetable(cal, course, '11_11')
 
     return cal.to_ical()
 
 
-def main(clazz):
-    sys.stdout.buffer.write(get_data(clazz))
+def main(course):
+    sys.stdout.buffer.write(get_data(course))
 
 def server(listen):
     from flask import Flask
     app = Flask(__name__)
 
-    @app.route("/<clazz>.ics")
-    def run(clazz):
-        return get_data(clazz)
+    @app.route("/<course>.ics")
+    def run(course):
+        return get_data(course)
 
     if listen:
         host, port = urllib.parse.splitport(listen)
@@ -81,7 +81,7 @@ def server(listen):
         app.run()
 
 def usage():
-    print("Usage : %s CLASS" % sys.argv[0], file=sys.stderr)
+    print("Usage : %s COURSE" % sys.argv[0], file=sys.stderr)
     print("        %s --server [LISTEN]" % sys.argv[0], file=sys.stderr)
     sys.exit(1)
 
