@@ -28,9 +28,6 @@ def get_timetable(cal, clazz, period):
 
     cal['summary'] = soup.find_all('h3')[1].get_text().strip()
 
-    print(soup.find_all('h3')[1].get_text().strip(), file=sys.stderr)
-    print(file=sys.stderr)
-
     for tr in body.find_all('tr'):
         tds = [ [s for s in td.strings if not s.isspace()] for td in tr.find_all('td') ]
 
@@ -42,28 +39,17 @@ def get_timetable(cal, clazz, period):
                 for j in range(0, len(td), 2):
                     r = td[j:j+2]
 
-                    m = re.fullmatch(r'(\w{3}) \((\d+)-(\d+)\) / (.+)? / ?(.+)?', r[1])
+                    m = re.fullmatch(r'(\w{3}(/\w{3})?) \((\d+)-(\d+)\) / (.+)? / ?(.+)?', r[1])
 
-                    for w in range(int(m.group(2)), int(m.group(3)) + 1):
+                    for w in range(int(m.group(3)), int(m.group(4)) + 1):
                         t = dt.datetime.combine(TERMSTART + dt.timedelta(weeks = (w - 1), days = i), time)
-
-                        print(r[0], file=sys.stderr)
-                        print(t, file=sys.stderr)
-
-                        if m.group(1) != 'Wks':
-                            print(m.group(1), file=sys.stderr)
-                        if m.group(4):
-                            print('%s' % m.group(4), file=sys.stderr)
-                        if m.group(5):
-                            print('Room %s' % m.group(5), file=sys.stderr)
-                        print(file=sys.stderr)
 
                         event = ical.Event()
                         event.add('summary', r[0])
                         event.add('dtstart', t)
                         event.add('dtend', t + dt.timedelta(hours = 1))
-                        if m.group(5):
-                            event['location'] = ical.vText('Room %s' % m.group(5))
+                        if m.group(6):
+                            event['location'] = ical.vText('Room %s' % m.group(6))
                         cal.add_component(event)
 
 def get_data(clazz):
