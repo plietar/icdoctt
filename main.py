@@ -1,4 +1,4 @@
-from urllib.request import urlopen
+import urllib.parse
 import bs4 as BeautifulSoup
 import requests
 import re
@@ -9,8 +9,7 @@ from pytz import timezone
 
 TERMSTART = dt.date(2014, 10, 6)
 
-
-def get_timetable(cal, period):
+def get_timetable(cal, clazz, period):
     soup = BeautifulSoup.BeautifulSoup(requests.get('http://www.doc.ic.ac.uk/internal/timetables/2014-15/autumn/class/%s_%s.htm' % (clazz, period)).text)
     table = soup.find('table')
     body = table.tbody
@@ -55,17 +54,45 @@ def get_timetable(cal, period):
                             event['location'] = ical.vText('Room %s' % m.group(5))
                         cal.add_component(event)
 
-if len(sys.argv) != 2:
+def main(clazz):
+    cal = ical.Calendar()
+
+    get_timetable(cal, clazz, '1_1')
+    get_timetable(cal, clazz, '2_10')
+    get_timetable(cal, clazz, '11_11')
+
+    sys.stdout.buffer.write(cal.to_ical())
+
+def server(listen):
+    from flask import Flask
+    app = Flask(__name__)
+
+    @app.route("/<clazz>.ics")
+    def run(clazz):
+        cal = ical.Calendar()
+
+        get_timetable(cal, clazz, '1_1')
+        get_timetable(cal, clazz, '2_10')
+        get_timetable(cal, clazz, '11_11')
+
+        return cal.to_ical()
+
+    if listen:
+        host, port = urllib.parse.splitport(listen)
+        app.run(host, int(port) if port is not None else None)
+    else:
+        app.run()
+
+def usage():
     print("Usage : %s CLASS" % sys.argv[0], file=sys.stderr)
+    print("        %s --server LISTEN" % sys.argv[0], file=sys.stderr)
     sys.exit(1)
 
-clazz = sys.argv[1]
+if len(sys.argv) == 3 and sys.argv[1] == '--server':
+    server(sys.argv[2])
+elif len(sys.argv) == 2 and sys.argv[1] != '--server':
+    main(sys.argv[1])
+else:
+    usage()
 
-cal = ical.Calendar()
-
-get_timetable(cal, '1_1')
-get_timetable(cal, '2_10')
-get_timetable(cal, '11_11')
-
-sys.stdout.buffer.write(cal.to_ical())
 
