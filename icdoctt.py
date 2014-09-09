@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import urllib.parse
 import bs4 as BeautifulSoup
 import requests
